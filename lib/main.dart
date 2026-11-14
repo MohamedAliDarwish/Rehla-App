@@ -2,7 +2,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:rehla/core/constants/app_strings.dart';
 import 'package:rehla/core/routes/app_route.dart';
 
-void main() async {
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 

@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:rehla/core/constants/app_assets.dart';
 import 'package:rehla/core/constants/app_colors.dart';
 import 'package:rehla/core/routes/route_names.dart';
 import 'package:rehla/core/theme/test_styles.dart';
@@ -8,20 +9,36 @@ class DestinationCard extends StatelessWidget {
   final String image;
   final String title;
   final String price;
+  final String? tripId;
+  final VoidCallback? onTap;
 
   const DestinationCard({
     super.key,
     required this.image,
     required this.title,
     required this.price,
+    this.tripId,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final bool isNetworkImage =
+        image.startsWith('http://') || image.startsWith('https://');
+
     return GestureDetector(
-      onTap: () => context.push(RouteNames.tripDetails),
+      onTap: onTap ??
+          () {
+            try {
+              if (tripId != null && tripId!.isNotEmpty) {
+                context.push(RouteNames.tripDetails, extra: tripId);
+              } else {
+                context.push(RouteNames.tripDetails);
+              }
+            } catch (_) {}
+          },
       child: Container(
-        width: 120,
+        width: 150,
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
@@ -38,21 +55,45 @@ class DestinationCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                  // borderRadius: BorderRadius.only(
-                  //   topLeft: Radius.circular(AppSizes.r16),
-                  //   topRight: Radius.circular(AppSizes.r16),
-                  // ),
-
-                  image: DecorationImage(
-                    image: AssetImage(image),
-                    fit: BoxFit.cover,
-                  ),
+              child: ClipRRect(
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(16)),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: double.infinity,
+                  child: isNetworkImage
+                      ? Image.network(
+                          image,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return const Center(
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) =>
+                              Image.asset(
+                            AppAssets.destLuxor,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : Image.asset(
+                          image.isNotEmpty ? image : AppAssets.destLuxor,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Image.asset(
+                            AppAssets.destLuxor,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                 ),
               ),
-            ), //.expanded(), //
+            ),
             Padding(
               padding: const EdgeInsets.all(12.0),
               child: Column(
@@ -66,19 +107,18 @@ class DestinationCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  // AppSizes.p4.verticalSpace,
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '$price ج.م',
+                        price.contains('ج.م') ? price : '$price ج.م',
                         style: AppTextStyles.labelMedium.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Icon(
+                      const Icon(
                         Icons.favorite_border,
                         size: 14,
                         color: AppColors.textHint,
