@@ -31,19 +31,17 @@ class ApiDataSourse {
   Future<Map<String, dynamic>> register(SignupUserModel signupUserModel) async {
     Response response;
     try {
-      response = await _dio.post(
-        "/auth/register",
-        data: signupUserModel.toJson(),
-      );
+      response = await _dio.post("auth/signup", data: signupUserModel.toJson());
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
         response = await _dio.post(
-          "auth/register",
+          "auth/signup",
           data: signupUserModel.toJson(),
         );
       } else {
         rethrow;
       }
+      // rethrow;
     }
 
     final rawData = response.data;

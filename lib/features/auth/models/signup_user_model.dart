@@ -1,12 +1,12 @@
 class SignupUserModel {
-  final String name;
+  final String fullName;
   final String email;
   final String password;
   final String phone;
   final String? profileImgPath;
 
   SignupUserModel({
-    this.name = '',
+    required this.fullName,
     required this.email,
     required this.password,
     required this.phone,
@@ -15,12 +15,12 @@ class SignupUserModel {
 
   Map<String, dynamic> toJson() {
     return {
-      if (name.isNotEmpty) "name": name,
+      "fullName": fullName,
       "email": email,
       "password": password,
       "phone": phone,
-      if (profileImgPath != null && profileImgPath!.isNotEmpty)
-        "profileImgPath": profileImgPath,
+      // if (profileImgPath != null && profileImgPath!.isNotEmpty)
+      "profileImgPath": profileImgPath ?? '',
     };
   }
 }
