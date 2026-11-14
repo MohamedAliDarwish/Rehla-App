@@ -51,7 +51,7 @@ class _SignupScreenState extends State<SignupScreen> {
       }
 
       final userModel = SignupUserModel(
-        name: _nameController.text.trim(),
+        fullName: _nameController.text.trim(),
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
         phone: _phoneController.text.trim(),
@@ -105,8 +105,10 @@ class _SignupScreenState extends State<SignupScreen> {
                 final isLoading = state is AuthLoadingState;
 
                 return SingleChildScrollView(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -219,8 +221,8 @@ class _SignupScreenState extends State<SignupScreen> {
                                     fontWeight: FontWeight.bold,
                                   ),
                                   recognizer: TapGestureRecognizer()
-                                    ..onTap =
-                                        () => context.go(RouteNames.login),
+                                    ..onTap = () =>
+                                        context.go(RouteNames.login),
                                 ),
                               ],
                             ),

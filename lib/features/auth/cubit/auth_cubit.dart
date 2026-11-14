@@ -16,14 +16,12 @@ class AuthCubit extends Cubit<AuthStates> {
       final res = await _apiDataSourse.register(usermodel);
       emit(AuthSignupSucessState(data: res));
     } catch (e) {
+      print("Error Cubit: ==> ${e}");
       emit(AuthErrorState(errorMessage: _getErrorMessage(e)));
     }
   }
 
-  Future<void> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> login({required String email, required String password}) async {
     emit(AuthLoadingState());
     try {
       final res = await _apiDataSourse.login(email, password);
