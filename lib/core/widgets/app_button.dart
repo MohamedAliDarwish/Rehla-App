@@ -6,12 +6,15 @@ class AppMainButton extends StatelessWidget {
   final void Function() onPressed;
   final Color? backgroundColor;
   final Color? txtColor;
+  final Widget? item;
+
   const AppMainButton({
     super.key,
     required this.txt,
     this.backgroundColor,
     this.txtColor,
     required this.onPressed,
+    this.item,
   });
 
   @override
@@ -27,6 +30,7 @@ class AppMainButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
           ),
         ),
+
         onPressed: onPressed,
         child: Text(txt, style: TextStyle(color: txtColor ?? Colors.white)),
       ),

@@ -1,9 +1,10 @@
 import 'package:go_router/go_router.dart';
-import 'package:rehla/core/constants/app_assets.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:rehla/core/constants/app_assets.dart';
 import 'package:rehla/core/constants/app_colors.dart';
 import 'package:rehla/core/constants/app_strings.dart';
 import 'package:rehla/core/routes/route_names.dart';
+import 'package:rehla/core/storage/secure_storage_service.dart';
 import 'package:rehla/core/theme/test_styles.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -17,11 +18,21 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        context.go(RouteNames.login);
-      }
-    });
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+
+    final hasToken = await SecureStorageService.instance.hasToken();
+    if (!mounted) return;
+
+    if (hasToken) {
+      context.go(RouteNames.home);
+    } else {
+      context.go(RouteNames.login);
+    }
   }
 
   @override
@@ -78,7 +89,7 @@ class _SplashScreenState extends State<SplashScreen> {
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.25),
                           blurRadius: 50,
-                          offset: Offset(0, 25),
+                          offset: const Offset(0, 25),
                         ),
                       ],
                     ),
@@ -90,7 +101,7 @@ class _SplashScreenState extends State<SplashScreen> {
                           shape: BoxShape.circle,
                           color: AppColors.surface,
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.explore,
                           size: 32,
                           color: AppColors.primaryDark,
@@ -99,7 +110,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                   ),
 
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
                   // App Title
                   Text(
@@ -110,7 +121,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                   ),
 
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
                   // Tagline
                   Text(
@@ -124,7 +135,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
                   // Loading Indicator Area
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       children: [
                         Text(
@@ -134,14 +145,14 @@ class _SplashScreenState extends State<SplashScreen> {
                           ),
                           textDirection: TextDirection.rtl,
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
                           AppStrings.verifyingLogin,
                           style: AppTextStyles.bodyMedium.copyWith(
                             color: Colors.white,
                           ),
                         ),
-                        SizedBox(height: 24),
+                        const SizedBox(height: 24),
 
                         // Progress Bar Container
                         Container(
@@ -151,12 +162,18 @@ class _SplashScreenState extends State<SplashScreen> {
                             color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(32),
                           ),
+                          child: const LinearProgressIndicator(
+                            backgroundColor: Colors.transparent,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.secondary,
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
 
-                  SizedBox(height: 32),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),

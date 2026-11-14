@@ -3,7 +3,7 @@ import 'package:rehla/core/constants/app_colors.dart';
 import 'package:rehla/core/constants/app_strings.dart';
 import 'package:rehla/features/user/booking/booking_screen.dart';
 import 'package:rehla/features/user/favorites/favorites_screen.dart';
-import 'package:rehla/features/user/home/widgets/home_screen.dart';
+import 'package:rehla/features/user/home/home_screen.dart';
 import 'package:rehla/features/user/notification/notification_screen.dart';
 import 'package:rehla/features/user/profile/profile_screen.dart';
 
@@ -29,17 +29,9 @@ class _RootScreenState extends State<RootScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        // child: IndexedStack(index: _currentIndex, children: _pages),
-
-        child: PageView.builder(
-          physics: NeverScrollableScrollPhysics(),
-          itemCount: _pages.length,
-          itemBuilder: (context, index) {
-            index = _currentIndex;
-            print("INDEX: $index");
-            print(_pages.length);
-            return _pages[index];
-          },
+        child: IndexedStack(
+          index: _currentIndex,
+          children: _pages,
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(

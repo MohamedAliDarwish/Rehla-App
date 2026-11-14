@@ -35,7 +35,7 @@ class AppStrings {
   static const String navMore = "المزيد";
 
   static const String homeTitle = "رحلة";
-  static const String bookNow = "احجز الأن";
+  static const String bookNow = "احجز الآن";
 
   static const String categories = "الفئات";
 
@@ -49,4 +49,29 @@ class AppStrings {
   static const String viewAll = " عرض الكل";
 
   static const String popularDestinations = "رحلات شائعة";
+
+  static const String trips = "الرحلات";
+
+  // Trip Details
+  static const String tripDetails = "تفاصيل الرحلة";
+  static const String overview = "نظرة عامة";
+  static const String itinerary = "برنامج الرحلة";
+  static const String includedServices = "الخدمات المشمولة";
+  static const String excludedServices = "غير مشمول";
+  static const String cancellationPolicy = "سياسة الإلغاء";
+  static const String availableSeats = "المقاعد المتاحة";
+  static const String fromLocation = "مكان الانطلاق";
+  static const String destination = "الوجهة";
+  static const String duration = "المدة";
+  static const String daysCount = "أيام";
+  static const String perPerson = "لكل شخص";
+  static const String retry = "إعادة المحاولة";
+
+  // Filter & Search
+  static const String filterTitle = "البحث والتصفية";
+  static const String all = "الكل";
+  static const String searchResults = "نتائج البحث";
+  static const String noTripsFound = "لا توجد رحلات مطابقة";
+  static const String noTripsFoundSubtitle = "جرّب البحث باسم آخر أو اختر فئة مختلفة";
+  static const String clearFilter = "إعادة ضبط";
 }
