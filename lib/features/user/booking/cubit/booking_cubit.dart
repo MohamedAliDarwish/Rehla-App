@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
 import 'booking_states.dart';
-import 'trip_model.dart';
+import '../model/trip_model.dart';
 
 class BookingCubit extends Cubit<BookingState> {
   BookingCubit() : super(BookingInitial());

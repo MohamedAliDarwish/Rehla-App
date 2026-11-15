@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'trip_model.dart';
+import 'model/trip_model.dart';
 import 'booking_confirmation_screen.dart';
-import 'booking_cubit.dart';
+import 'cubit/booking_cubit.dart';
 
 class BookingDetailsScreen extends StatelessWidget {
   final TripModel trip;

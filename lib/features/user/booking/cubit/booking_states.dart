@@ -1,4 +1,4 @@
-import 'trip_model.dart';
+import '../model/trip_model.dart';
 
 abstract class BookingState {}
 

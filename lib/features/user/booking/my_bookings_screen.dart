@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'booking_cubit.dart';
-import 'booking_states.dart';
-import 'trip_model.dart';
+import 'cubit/booking_cubit.dart';
+import 'cubit/booking_states.dart';
+import 'model/trip_model.dart';
 import 'booking_details_screen.dart';
 
 class BookingScreen extends StatelessWidget {
