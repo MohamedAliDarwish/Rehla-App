@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart';
+// import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rehla/core/data_sourse/api_data_sourse.dart';
 import 'package:rehla/core/storage/secure_storage_service.dart';
@@ -17,7 +17,7 @@ class AuthCubit extends Cubit<AuthStates> {
       emit(AuthSignupSucessState(data: res));
     } catch (e) {
       print("Error Cubit: ==> ${e}");
-      emit(AuthErrorState(errorMessage: _getErrorMessage(e)));
+      emit(AuthErrorState(errorMessage: e.toString()));
     }
   }
 
@@ -27,7 +27,8 @@ class AuthCubit extends Cubit<AuthStates> {
       final res = await _apiDataSourse.login(email, password);
       emit(AuthLoginSuccessState(data: res));
     } catch (e) {
-      emit(AuthErrorState(errorMessage: _getErrorMessage(e)));
+      emit(AuthErrorState(errorMessage: e.toString()));
+      // emit(AuthErrorState(errorMessage: _getErrorMessage(e)));
     }
   }
 
@@ -35,7 +36,7 @@ class AuthCubit extends Cubit<AuthStates> {
     await SecureStorageService.instance.logout();
     emit(AuthLoggedOutState());
   }
-
+  /*
   String _getErrorMessage(dynamic e) {
     if (e is DioException) {
       if (e.response?.data is Map) {
@@ -52,4 +53,6 @@ class AuthCubit extends Cubit<AuthStates> {
     }
     return e.toString().replaceFirst('Exception: ', '');
   }
+
+  */
 }

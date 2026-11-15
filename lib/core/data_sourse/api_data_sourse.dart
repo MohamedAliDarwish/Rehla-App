@@ -159,4 +159,33 @@ class ApiDataSourse {
     }
     throw Exception("فشل في تحميل تفاصيل الرحلة");
   }
+
+  Future<void> addFavorite(String tripId) async {
+    print("================== Adding To Favorites ==================");
+    await _dio.post("favorites/$tripId");
+  }
+
+  Future<void> removeFavorite(String tripId) async {
+    await _dio.delete("favorites/$tripId");
+  }
+
+  Future<bool> checkFavorite(String tripId) async {
+    final response = await _dio.get("favorites/$tripId");
+    final rawData = response.data;
+    final favoriteStatus = _getFavoriteStatus(rawData);
+    if (favoriteStatus != null) return favoriteStatus;
+
+    throw const FormatException("استجابة التحقق من المفضلة غير صالحة");
+  }
+
+  bool? _getFavoriteStatus(dynamic data) {
+    if (data is bool) return data;
+    if (data is! Map) return null;
+
+    final status = data['isFavorite'] ?? data['favorite'];
+    if (status is bool) return status;
+    if (status is Map) return _getFavoriteStatus(status);
+
+    return _getFavoriteStatus(data['data']);
+  }
 }

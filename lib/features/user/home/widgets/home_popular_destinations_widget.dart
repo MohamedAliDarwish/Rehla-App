@@ -68,10 +68,9 @@ class HomePopularDestinationsWidget extends StatelessWidget {
                       image: trip.coverImage,
                       title: trip.title,
                       price: trip.price.toInt().toString(),
-                      onTap: () => context.push(
-                        RouteNames.tripDetails,
-                        extra: trip.id,
-                      ),
+                      tripId: trip.id,
+                      onTap: () =>
+                          context.push(RouteNames.tripDetails, extra: trip.id),
                     );
                   },
                 ),
@@ -80,8 +79,10 @@ class HomePopularDestinationsWidget extends StatelessWidget {
 
             if (state is HomeTripsErrorState) {
               return Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: [
                     const Text(

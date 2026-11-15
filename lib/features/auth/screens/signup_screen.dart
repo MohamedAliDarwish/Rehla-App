@@ -71,13 +71,14 @@ class _SignupScreenState extends State<SignupScreen> {
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            leading: IconButton(
-              icon: const Icon(
-                Icons.arrow_back_ios_new,
-                color: AppColors.primary,
-              ),
-              onPressed: () => context.pop(),
-            ),
+            leading: null,
+            // IconButton(
+            //   icon: const Icon(
+            //     Icons.arrow_back_ios_new,
+            //     color: AppColors.primary,
+            //   ),
+            //   onPressed: () => context.pop(),
+            // ),
             title: Text(AppStrings.register),
             centerTitle: true,
           ),

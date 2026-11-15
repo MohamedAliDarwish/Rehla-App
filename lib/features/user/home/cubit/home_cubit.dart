@@ -9,6 +9,9 @@ class HomeCubit extends Cubit<HomeStates> {
 
   final ApiDataSourse _apiDataSourse = ApiDataSourse();
 
+  Set<String> favoriteTripIds = {};
+  Set<String> favoriteLoadingIds = {};
+
   List<CategoryModel> categories = [];
   List<TripModel> trips = [];
 
@@ -16,10 +19,7 @@ class HomeCubit extends Cubit<HomeStates> {
   bool isTripsLoading = false;
 
   Future<void> getHomeData() async {
-    await Future.wait([
-      getAllCategories(),
-      getAllTrips(),
-    ]);
+    await Future.wait([getAllCategories(), getAllTrips()]);
   }
 
   // Categories
@@ -38,17 +38,86 @@ class HomeCubit extends Cubit<HomeStates> {
   }
 
   // Trips
+  // Future<void> getAllTrips() async {
+  //   isTripsLoading = true;
+  //   emit(HomeTripsLoadingState());
+  //   try {
+  //     final allTrips = await _apiDataSourse.getAllTrips();
+  //     trips = allTrips;
+  //     isTripsLoading = false;
+  //     emit(HomeTripsSuccessState(trips: allTrips));
+  //   } catch (e) {
+  //     isTripsLoading = false;
+  //     emit(HomeTripsErrorState(errorMessage: e.toString()));
+  //   }
+  // }
+
   Future<void> getAllTrips() async {
     isTripsLoading = true;
     emit(HomeTripsLoadingState());
+
     try {
       final allTrips = await _apiDataSourse.getAllTrips();
+
       trips = allTrips;
       isTripsLoading = false;
+
       emit(HomeTripsSuccessState(trips: allTrips));
+
+      // Load favorite status for each trip
+      await loadFavoriteStatuses();
     } catch (e) {
       isTripsLoading = false;
       emit(HomeTripsErrorState(errorMessage: e.toString()));
+    }
+  }
+
+  // Load initial favorites status
+  Future<void> loadFavoriteStatuses() async {
+    final results = await Future.wait(
+      trips.map((trip) async {
+        try {
+          final isFavorite = await _apiDataSourse.checkFavorite(trip.id);
+
+          return MapEntry(trip.id, isFavorite);
+        } catch (e) {
+          print(e);
+          // return null;
+          emit(HomeErrorState(errorMessage: e.toString()));
+        }
+      }),
+    );
+
+    favoriteTripIds = {
+      for (final result in results)
+        if (result != null && result.value) result.key,
+    };
+
+    emit(HomeFavoritesState());
+  }
+
+  // Toggle Favorite
+  Future<void> toggleFavorite(String tripId) async {
+    if (favoriteLoadingIds.contains(tripId)) return;
+
+    final isFavorite = favoriteTripIds.contains(tripId);
+
+    favoriteLoadingIds.add(tripId);
+    emit(HomeFavoritesState());
+
+    try {
+      if (isFavorite) {
+        await _apiDataSourse.removeFavorite(tripId);
+        favoriteTripIds.remove(tripId);
+      } else {
+        await _apiDataSourse.addFavorite(tripId);
+        favoriteTripIds.add(tripId);
+      }
+    } catch (e) {
+      emit(HomeFavoritesState(errorMessage: e.toString()));
+    } finally {
+      favoriteLoadingIds.remove(tripId);
+      emit(HomeFavoritesState());
     }
   }
 }
