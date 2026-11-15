@@ -20,6 +20,14 @@ class TripDetailsScreen extends StatelessWidget {
 
   const TripDetailsScreen({super.key, required this.tripId});
 
+  // @override
+  // Widget build(BuildContext context) {
+  //   return BlocProvider(
+  //     create: (context) => TripDetailsCubit()..getTripDetails(tripId),
+  //     child: _TripDetailsView(tripId: tripId),
+  //   );
+  // }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(

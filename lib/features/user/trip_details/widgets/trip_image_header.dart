@@ -1,11 +1,11 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:rehla/core/constants/app_assets.dart';
 import 'package:rehla/core/constants/app_colors.dart';
 import 'package:rehla/core/theme/test_styles.dart';
+// import 'package:rehla/features/user/favorites/widgets/trip_favorite_button.dart';
+// import 'package:rehla/features/user/home/widgets/favorite_button.dart';
 import 'package:rehla/features/user/home/models/trip_models.dart';
-import 'package:rehla/features/user/trip_details/cubit/trip_details_cubit.dart';
 
 class TripImageHeader extends StatefulWidget {
   final TripModel trip;
@@ -75,7 +75,6 @@ class _TripImageHeaderState extends State<TripImageHeader> {
   @override
   Widget build(BuildContext context) {
     final images = _allImages;
-    final cubit = context.watch<TripDetailsCubit>();
 
     return SizedBox(
       height: 320,
@@ -125,21 +124,12 @@ class _TripImageHeaderState extends State<TripImageHeader> {
                       onPressed: () => context.pop(),
                     ),
                   ),
-                  CircleAvatar(
-                    backgroundColor: Colors.white.withValues(alpha: 0.85),
-                    child: IconButton(
-                      icon: Icon(
-                        cubit.isFavorite
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color: cubit.isFavorite
-                            ? AppColors.error
-                            : AppColors.primary,
-                        size: 20,
-                      ),
-                      onPressed: () => cubit.toggleFavorite(),
-                    ),
-                  ),
+                  // FavoriteButton(tripId: widget.trip.id),
+                  // TripFavoriteButton(
+                  //   tripId: widget.trip.id,
+                  //   iconSize: 20,
+                  //   showBackground: true,
+                  // ),
                 ],
               ),
             ),
@@ -155,8 +145,10 @@ class _TripImageHeaderState extends State<TripImageHeader> {
               children: [
                 // Rating Badge
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(20),
@@ -164,8 +156,11 @@ class _TripImageHeaderState extends State<TripImageHeader> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.star,
-                          color: AppColors.secondary, size: 16),
+                      const Icon(
+                        Icons.star,
+                        color: AppColors.secondary,
+                        size: 16,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         widget.trip.averageRating.toStringAsFixed(1),

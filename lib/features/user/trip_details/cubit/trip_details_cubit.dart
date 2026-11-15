@@ -8,7 +8,6 @@ class TripDetailsCubit extends Cubit<TripDetailsStates> {
 
   final ApiDataSourse _apiDataSourse = ApiDataSourse();
   TripModel? trip;
-  bool isFavorite = false;
 
   Future<void> getTripDetails(String id) async {
     emit(TripDetailsLoadingState());
@@ -21,10 +20,4 @@ class TripDetailsCubit extends Cubit<TripDetailsStates> {
     }
   }
 
-  void toggleFavorite() {
-    isFavorite = !isFavorite;
-    if (trip != null) {
-      emit(TripDetailsSuccessState(trip: trip!));
-    }
-  }
 }

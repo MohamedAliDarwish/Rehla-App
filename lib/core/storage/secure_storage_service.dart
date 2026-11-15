@@ -58,11 +58,7 @@ class SecureStorageService {
     final name = await _storage.read(key: _keyUserName);
     final email = await _storage.read(key: _keyUserEmail);
     final phone = await _storage.read(key: _keyUserPhone);
-    return {
-      'name': name,
-      'email': email,
-      'phone': phone,
-    };
+    return {'name': name, 'email': email, 'phone': phone};
   }
 
   // Logout / Clear all auth data

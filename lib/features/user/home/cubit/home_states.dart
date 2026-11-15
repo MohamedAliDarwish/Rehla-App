@@ -38,10 +38,17 @@ class HomeTripsSuccessState extends HomeStates {
 }
 
 // Alias to maintain compatibility with any existing reference
-typedef HomeTripsSucess = HomeTripsSuccessState;
+// typedef HomeTripsSucess = HomeTripsSuccessState;
 
 class HomeTripsErrorState extends HomeStates {
   final String errorMessage;
 
   HomeTripsErrorState({required this.errorMessage});
+}
+
+// Favorites
+class HomeFavoritesState extends HomeStates {
+  final String? errorMessage;
+
+  HomeFavoritesState({this.errorMessage});
 }
