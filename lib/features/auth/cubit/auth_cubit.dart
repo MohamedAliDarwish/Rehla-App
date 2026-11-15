@@ -16,7 +16,7 @@ class AuthCubit extends Cubit<AuthStates> {
       final res = await _apiDataSourse.register(usermodel);
       emit(AuthSignupSucessState(data: res));
     } catch (e) {
-      print("Error Cubit: ==> ${e}");
+      print("Error Cubit: ==> $e");
       emit(AuthErrorState(errorMessage: e.toString()));
     }
   }
