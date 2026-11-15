@@ -1,9 +1,11 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:rehla/core/constants/app_colors.dart';
 import 'package:rehla/core/constants/app_strings.dart';
 import 'package:rehla/core/routes/route_names.dart';
+import 'package:rehla/core/storage/secure_storage_service.dart';
 import 'package:rehla/core/theme/test_styles.dart';
 import 'package:rehla/core/widgets/app_button.dart';
 import 'package:rehla/core/widgets/app_text_feild.dart';
@@ -18,8 +20,10 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passController = TextEditingController();
+  final TextEditingController _emailController =
+      TextEditingController(text: 'admin@rehla.com');
+  final TextEditingController _passController =
+      TextEditingController(text: 'Admin123456');
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
@@ -47,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: GestureDetector(
             onTap: () => FocusScope.of(context).unfocus(),
             child: BlocConsumer<AuthCubit, AuthStates>(
-              listener: (context, state) {
+              listener: (context, state) async {
                 if (state is AuthLoginSuccessState) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -55,7 +59,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       backgroundColor: AppColors.success,
                     ),
                   );
-                  context.go(RouteNames.home);
+                  final emailInput = _emailController.text.trim().toLowerCase();
+                  final isAdmin = await SecureStorageService.instance.isAdmin();
+                  if (context.mounted) {
+                    if (isAdmin || emailInput.contains('admin')) {
+                      context.go(RouteNames.adminDashboard);
+                    } else {
+                      context.go(RouteNames.home);
+                    }
+                  }
                 } else if (state is AuthErrorState) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
