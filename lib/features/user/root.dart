@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:rehla/core/constants/app_colors.dart';
 import 'package:rehla/core/constants/app_strings.dart';
-import 'package:rehla/features/user/booking/booking_screen.dart';
+import 'package:rehla/features/user/booking/my_bookings_screen.dart';
 import 'package:rehla/features/user/favorites/favorites_screen.dart';
 import 'package:rehla/features/user/home/home_screen.dart';
 import 'package:rehla/features/user/notification/notification_screen.dart';
