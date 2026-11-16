@@ -98,6 +98,34 @@ class ApiDataSourse {
     return {};
   }
 
+  // Favorites
+  Future<List<TripModel>> getFavorites() async {
+    final response = await _dio.get("favorites");
+    final rawData = response.data;
+    final List<dynamic>? list = rawData is Map
+        ? (rawData['data'] ?? rawData['favorites'])
+        : null;
+    final trips = <TripModel>[];
+    if (list != null) {
+      for (var item in list) {
+        if (item is! Map<String, dynamic>) continue;
+        final tripMap = item['trip'] is Map<String, dynamic>
+            ? item['trip']
+            : item;
+        trips.add(TripModel.fromJson(tripMap));
+      }
+    }
+    return trips;
+  }
+
+  Future<void> addFavorite(String tripId) async {
+    await _dio.post("favorites/$tripId");
+  }
+
+  Future<void> removeFavorite(String tripId) async {
+    await _dio.delete("favorites/$tripId");
+  }
+
   // Categories
   Future<List<CategoryModel>> getAllCategories() async {
     List<CategoryModel> categories = [];
@@ -158,15 +186,6 @@ class ApiDataSourse {
       }
     }
     throw Exception("فشل في تحميل تفاصيل الرحلة");
-  }
-
-  Future<void> addFavorite(String tripId) async {
-    print("================== Adding To Favorites ==================");
-    await _dio.post("favorites/$tripId");
-  }
-
-  Future<void> removeFavorite(String tripId) async {
-    await _dio.delete("favorites/$tripId");
   }
 
   Future<bool> checkFavorite(String tripId) async {
