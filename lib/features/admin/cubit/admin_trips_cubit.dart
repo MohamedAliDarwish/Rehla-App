@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rehla/core/data_sourse/api_data_sourse.dart';
+
 import '../models/admin_trip_model.dart';
 import 'admin_trips_states.dart';
 
@@ -61,19 +62,25 @@ class AdminTripsCubit extends Cubit<AdminTripsState> {
     if (_activeTab == 'الكل') {
       filtered = List.from(_allTrips);
     } else if (_activeTab == 'منشورة') {
-      filtered = _allTrips.where((t) => t.status == 'منشورة' || t.isPublished).toList();
+      filtered = _allTrips
+          .where((t) => t.status == 'منشورة' || t.isPublished)
+          .toList();
     } else if (_activeTab == 'غير منشورة') {
-      filtered = _allTrips.where((t) => t.status == 'غير منشورة' || !t.isPublished).toList();
+      filtered = _allTrips
+          .where((t) => t.status == 'غير منشورة' || !t.isPublished)
+          .toList();
     } else if (_activeTab == 'مسودة') {
       filtered = _allTrips.where((t) => t.status == 'مسودة').toList();
     } else {
       filtered = List.from(_allTrips);
     }
 
-    emit(AdminTripsSuccessState(
-      allTrips: _allTrips,
-      filteredTrips: filtered,
-      activeTab: _activeTab,
-    ));
+    emit(
+      AdminTripsSuccessState(
+        allTrips: _allTrips,
+        filteredTrips: filtered,
+        activeTab: _activeTab,
+      ),
+    );
   }
 }

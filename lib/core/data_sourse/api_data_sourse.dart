@@ -6,9 +6,7 @@ import 'package:rehla/features/user/home/models/trip_models.dart';
 
 class ApiDataSourse {
   final Dio _dio = Dio(
-    BaseOptions(
-      baseUrl: "https://rehla-app-backend-api.vercel.app/api/v1/",
-    ),
+    BaseOptions(baseUrl: "https://rehla-app-backend-api.vercel.app/api/v1/"),
   );
 
   ApiDataSourse() {
@@ -84,21 +82,22 @@ class ApiDataSourse {
           (rawData['data'] is Map ? rawData['data']['user'] : null);
 
       final isEmailAdmin = email.toLowerCase().contains('admin');
-      final isRoleAdmin = (user is Map && user['role']?.toString().toLowerCase() == 'admin') ||
+      final isRoleAdmin =
+          (user is Map && user['role']?.toString().toLowerCase() == 'admin') ||
           (rawData['role']?.toString().toLowerCase() == 'admin');
 
       final computedRole = (isEmailAdmin || isRoleAdmin) ? 'admin' : 'user';
 
       if (user is Map) {
         await SecureStorageService.instance.saveUserData(
-          name: user['name']?.toString() ?? 'أحمد',
+          name: user['fullName']?.toString() ?? 'مستخدم رحله',
           email: user['email']?.toString() ?? email,
           phone: user['phone']?.toString(),
           role: computedRole,
         );
       } else {
         await SecureStorageService.instance.saveUserData(
-          name: 'أحمد',
+          name: 'مستخدم رحله',
           email: email,
           role: computedRole,
         );
@@ -202,14 +201,19 @@ class ApiDataSourse {
       final response = await _dio.get("admin/stats");
       if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
         final data = response.data;
-        stats = Map<String, dynamic>.from(data['data'] is Map ? data['data'] : data);
+        stats = Map<String, dynamic>.from(
+          data['data'] is Map ? data['data'] : data,
+        );
       }
     } catch (_) {
       try {
         final response = await _dio.get("stats");
-        if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+        if (response.statusCode == 200 &&
+            response.data is Map<String, dynamic>) {
           final data = response.data;
-          stats = Map<String, dynamic>.from(data['data'] is Map ? data['data'] : data);
+          stats = Map<String, dynamic>.from(
+            data['data'] is Map ? data['data'] : data,
+          );
         }
       } catch (_) {}
     }
@@ -279,12 +283,18 @@ class ApiDataSourse {
         return trips.map((trip) {
           return {
             "id": trip.id,
-            "code": "#BKG-${trip.id.length >= 6 ? trip.id.substring(trip.id.length - 6).toUpperCase() : '250610'}",
-            "destination": trip.destination.isNotEmpty ? trip.destination : trip.title,
-            "duration": "${trip.days.isNotEmpty ? trip.days.length : 3} أيام / ${(trip.days.length > 1 ? trip.days.length - 1 : 2)} ليلة",
+            "code":
+                "#BKG-${trip.id.length >= 6 ? trip.id.substring(trip.id.length - 6).toUpperCase() : '250610'}",
+            "destination": trip.destination.isNotEmpty
+                ? trip.destination
+                : trip.title,
+            "duration":
+                "${trip.days.isNotEmpty ? trip.days.length : 3} أيام / ${(trip.days.length > 1 ? trip.days.length - 1 : 2)} ليلة",
             "price": "${trip.price.toInt()} ج.م",
             "status": trip.availableSeats > 0 ? "مؤكد" : "قيد الانتظار",
-            "image": trip.coverImage.isNotEmpty ? trip.coverImage : "assets/images/dest_hurghada.png",
+            "image": trip.coverImage.isNotEmpty
+                ? trip.coverImage
+                : "assets/images/dest_hurghada.png",
           };
         }).toList();
       }
@@ -299,6 +309,11 @@ class ApiDataSourse {
     for (final ep in endpoints) {
       try {
         final response = await _dio.get(ep);
+        print("=========================================");
+        print(response.data.length);
+        print("=========================================");
+        print(response.data[response.data.length - 1]);
+        print("=========================================");
         final rawData = response.data;
         final List<dynamic>? list = rawData is Map
             ? (rawData['data'] ?? rawData['trips'])
@@ -314,15 +329,22 @@ class ApiDataSourse {
     try {
       final trips = await getAllTrips();
       if (trips.isNotEmpty) {
-        return trips.map((t) => {
-          "id": t.id,
-          "title": t.title,
-          "duration": "${t.days.isNotEmpty ? t.days.length : 3} أيام / ${(t.days.length > 1 ? t.days.length - 1 : 2)} ليلة",
-          "price": "${t.price.toInt()} ج.م",
-          "status": t.status.isNotEmpty ? t.status : "منشورة",
-          "isPublished": t.status != "غير منشورة",
-          "image": t.coverImage.isNotEmpty ? t.coverImage : "assets/images/dest_hurghada.png",
-        }).toList();
+        return trips
+            .map(
+              (t) => {
+                "id": t.id,
+                "title": t.title,
+                "duration":
+                    "${t.days.isNotEmpty ? t.days.length : 3} أيام / ${(t.days.length > 1 ? t.days.length - 1 : 2)} ليلة",
+                "price": "${t.price.toInt()} ج.م",
+                "status": t.status.isNotEmpty ? t.status : "منشورة",
+                "isPublished": t.status != "غير منشورة",
+                "image": t.coverImage.isNotEmpty
+                    ? t.coverImage
+                    : "assets/images/dest_hurghada.png",
+              },
+            )
+            .toList();
       }
     } catch (_) {}
 
@@ -365,10 +387,13 @@ class ApiDataSourse {
 
     for (final ep in endpoints) {
       try {
-        await _dio.patch(ep, data: {
-          "isPublished": publish,
-          "status": publish ? "منشورة" : "غير منشورة"
-        });
+        await _dio.patch(
+          ep,
+          data: {
+            "isPublished": publish,
+            "status": publish ? "منشورة" : "غير منشورة",
+          },
+        );
         return;
       } on DioException catch (e) {
         lastError = e;
