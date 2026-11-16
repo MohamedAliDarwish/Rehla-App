@@ -9,6 +9,8 @@ import 'package:rehla/features/auth/screens/login_screen.dart';
 import 'package:rehla/features/auth/screens/signup_screen.dart';
 import 'package:rehla/features/splash/splash_screen.dart';
 import 'package:rehla/features/user/booking/booking_confirmation_screen.dart';
+import 'package:rehla/features/user/filter/filter_screen.dart';
+import 'package:rehla/features/user/home/models/trip_models.dart';
 import 'package:rehla/features/user/booking/booking_details_screen.dart';
 import 'package:rehla/features/user/booking/cubit/booking_cubit.dart';
 import 'package:rehla/features/user/booking/model/trip_model.dart' as booking_trip;
@@ -22,6 +24,16 @@ class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: RouteNames.adminBookings,
     routes: [
+      GoRoute(
+  path: '/booking-confirmation',
+  builder: (context, state) {
+    
+    final tripData = state.extra as TripModel; 
+    
+    
+    return BookingConfirmationScreen(trip: tripData); 
+  },
+),
       GoRoute(
         path: RouteNames.splash,
         builder: (context, state) => const SplashScreen(),

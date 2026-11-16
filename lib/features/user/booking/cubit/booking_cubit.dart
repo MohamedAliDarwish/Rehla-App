@@ -1,24 +1,35 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
 import 'booking_states.dart';
-import '../model/trip_model.dart';
+import 'package:rehla/features/user/home/models/trip_models.dart';
+import 'package:rehla/core/storage/secure_storage_service.dart';
+import 'package:flutter/material.dart';
 
 class BookingCubit extends Cubit<BookingState> {
-  BookingCubit() : super(BookingInitial());
+  BookingCubit() : super(BookingInitial()) {
+    
+    _dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        final token = await SecureStorageService.instance.getToken();
+        if (token != null && token.isNotEmpty) {
+          options.headers['Authorization'] = 'Bearer $token';
+        }
+        return handler.next(options);
+      },
+    ));
+  }
 
-  static BookingCubit get(context) => BlocProvider.of(context);
+  static BookingCubit get(BuildContext context) => BlocProvider.of(context);
 
   final Dio _dio = Dio(
     BaseOptions(
       baseUrl: 'https://rehla-app-backend-api.vercel.app/',
       headers: {
         'Accept': 'application/json',
-        // انا سايب هنا مكان التوكن فاضي
-        'Authorization': 'Bearer YOUR_TOKEN_HERE',
       },
     ),
   );
-  
+
   int selectedFilterIndex = 0;
   final List<String> filters = ['الكل', 'مقبول', 'قيد الانتظار', 'ملغي'];
 
@@ -66,10 +77,10 @@ class BookingCubit extends Cubit<BookingState> {
   Future<void> confirmBooking({required String tripId, String? notes}) async {
     emit(BookTripLoading());
     try {
-      final response = await _dio.post('api/bookings', data: {
+      // هنا بيجيب ايرور انا مش عارف اكتب ايه
+      final response = await _dio.post('booking/', data: {
         "tripId": tripId,
-        "peopleCount": peopleCount,
-        "totalPrice": peopleCount * pricePerPerson,
+        "numberOfSeats": peopleCount, 
         "notes": notes ?? "",
       });
 

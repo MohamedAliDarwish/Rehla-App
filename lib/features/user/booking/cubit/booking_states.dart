@@ -1,5 +1,4 @@
-import '../model/trip_model.dart';
-
+import 'package:rehla/features/user/home/models/trip_models.dart';
 abstract class BookingState {}
 
 class BookingInitial extends BookingState {}

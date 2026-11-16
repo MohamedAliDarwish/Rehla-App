@@ -2,7 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'cubit/booking_cubit.dart';
 import 'cubit/booking_states.dart';
-import 'model/trip_model.dart';
+import 'package:rehla/features/user/home/models/trip_models.dart';
 
 class BookingConfirmationScreen extends StatelessWidget {
   final TripModel trip;
@@ -63,7 +63,7 @@ class BookingConfirmationScreen extends StatelessWidget {
                             ? null
                             : () {
                                 cubit.confirmBooking(
-                                  tripId: trip.title, 
+                                  tripId: trip.id.toString(),
                                   notes: notesController.text,
                                 );
                               },
@@ -97,6 +97,15 @@ class BookingConfirmationScreen extends StatelessWidget {
             width: 80,
             height: 80,
             fit: BoxFit.cover,
+            // الكود ده بيحمي الشاشة لو لينك الصورة بايظ
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                width: 80,
+                height: 80,
+                color: Colors.grey.shade300,
+                child: const Icon(Icons.broken_image, color: Colors.grey),
+              );
+            },
           ),
         ),
         const SizedBox(width: 15),
@@ -147,7 +156,7 @@ class BookingConfirmationScreen extends StatelessWidget {
               Column(
                 children: [
                   Text('${cubit.peopleCount}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  Text('${cubit.pricePerPerson} ج.م / للفرد', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                  Text('${trip.price} ج.م / للفرد', style: const TextStyle(color: Colors.grey, fontSize: 12)),
                 ],
               ),
               InkWell(
@@ -193,7 +202,7 @@ class BookingConfirmationScreen extends StatelessWidget {
   }
 
   Widget _buildPriceSummary(BookingCubit cubit) {
-    double total = cubit.peopleCount * cubit.pricePerPerson;
+    double total = cubit.peopleCount * trip.price.toDouble();
     
     return Container(
       padding: const EdgeInsets.all(16),
@@ -210,7 +219,7 @@ class BookingConfirmationScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('تكلفة الرحلة (${cubit.peopleCount} × ${cubit.pricePerPerson})', style: const TextStyle(color: Colors.grey)),
+              Text('تكلفة الرحلة (${cubit.peopleCount} × ${trip.price})', style: const TextStyle(color: Colors.grey)),
               Text('$total ج.م'),
             ],
           ),
