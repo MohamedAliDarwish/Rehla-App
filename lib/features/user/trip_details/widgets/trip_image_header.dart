@@ -6,6 +6,7 @@ import 'package:rehla/core/theme/test_styles.dart';
 // import 'package:rehla/features/user/favorites/widgets/trip_favorite_button.dart';
 // import 'package:rehla/features/user/home/widgets/favorite_button.dart';
 import 'package:rehla/features/user/home/models/trip_models.dart';
+import 'package:rehla/features/user/home/widgets/favorite_button.dart';
 
 class TripImageHeader extends StatefulWidget {
   final TripModel trip;
@@ -124,12 +125,6 @@ class _TripImageHeaderState extends State<TripImageHeader> {
                       onPressed: () => context.pop(),
                     ),
                   ),
-                  // FavoriteButton(tripId: widget.trip.id),
-                  // TripFavoriteButton(
-                  //   tripId: widget.trip.id,
-                  //   iconSize: 20,
-                  //   showBackground: true,
-                  // ),
                 ],
               ),
             ),
