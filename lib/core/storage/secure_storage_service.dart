@@ -21,6 +21,8 @@ class SecureStorageService {
   static const String _keyUserEmail = 'auth_user_email';
   static const String _keyUserPhone = 'auth_user_phone';
 
+  static const String _keyUserRole = 'auth_user_role';
+
   // Save Token
   Future<void> saveToken(String token) async {
     await _storage.write(key: _keyToken, value: token);
@@ -47,10 +49,12 @@ class SecureStorageService {
     String? name,
     String? email,
     String? phone,
+    String? role,
   }) async {
     if (name != null) await _storage.write(key: _keyUserName, value: name);
     if (email != null) await _storage.write(key: _keyUserEmail, value: email);
     if (phone != null) await _storage.write(key: _keyUserPhone, value: phone);
+    if (role != null) await _storage.write(key: _keyUserRole, value: role);
   }
 
   // Get User Info
@@ -58,7 +62,21 @@ class SecureStorageService {
     final name = await _storage.read(key: _keyUserName);
     final email = await _storage.read(key: _keyUserEmail);
     final phone = await _storage.read(key: _keyUserPhone);
-    return {'name': name, 'email': email, 'phone': phone};
+    final role = await _storage.read(key: _keyUserRole);
+    return {'name': name, 'email': email, 'phone': phone, 'role': role};
+  }
+
+  Future<String?> getRole() async {
+    return await _storage.read(key: _keyUserRole);
+  }
+
+  Future<bool> isAdmin() async {
+    final role = await getRole();
+    final email = await _storage.read(key: _keyUserEmail);
+    if (email != null && email.toLowerCase().contains('admin')) {
+      return true;
+    }
+    return role != null && (role.toLowerCase() == 'admin');
   }
 
   // Logout / Clear all auth data
@@ -67,6 +85,7 @@ class SecureStorageService {
     await _storage.delete(key: _keyUserName);
     await _storage.delete(key: _keyUserEmail);
     await _storage.delete(key: _keyUserPhone);
+    await _storage.delete(key: _keyUserRole);
   }
 
   // Clear everything from storage

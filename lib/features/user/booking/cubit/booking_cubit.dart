@@ -59,7 +59,7 @@ class BookingCubit extends Cubit<BookingState> {
         emit(GetTripsError("Failed to load trips"));
       }
     } catch (e) {
-      emit(GetTripsError(e.toString()));
+      emit(GetTripsError(_getErrorMessage(e)));
     }
   }
   
@@ -76,10 +76,36 @@ class BookingCubit extends Cubit<BookingState> {
       if (response.statusCode == 200 || response.statusCode == 201) {
         emit(BookTripSuccess());
       } else {
-        emit(BookTripError("Failed to confirm booking"));
+        emit(BookTripError("فشل في تأكيد الحجز"));
       }
     } catch (e) {
-      emit(BookTripError(e.toString()));
+      emit(BookTripError(_getErrorMessage(e)));
     }
+  }
+
+  String _getErrorMessage(dynamic e) {
+    if (e is DioException) {
+      if (e.response?.data is Map) {
+        final data = e.response?.data;
+        final msg = data['message'] ?? data['error'] ?? data['msg'];
+        if (msg != null && msg.toString().isNotEmpty) {
+          return msg.toString();
+        }
+      }
+      if (e.response?.statusCode == 409) {
+        return "طلب ملغى أو مكرر أو يتطلب تحديث البيانات";
+      }
+      if (e.response?.statusCode == 400) {
+        return "بيانات غير صالحة، يرجى التأكد من البيانات المدخلة";
+      }
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        return "انتهت مهلة الاتصال بالخادم، يرجى المحاولة لاحقاً";
+      }
+      if (e.type == DioExceptionType.connectionError) {
+        return "تعذر الاتصال بالخادم، تأكد من اتصالك بالإنترنت";
+      }
+    }
+    return e.toString().replaceFirst('Exception: ', '');
   }
 }

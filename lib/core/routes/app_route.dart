@@ -1,15 +1,26 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rehla/core/routes/route_names.dart';
+import 'package:rehla/features/admin/screens/add_trip_screen.dart';
+import 'package:rehla/features/admin/screens/admin_bookings_screen.dart';
+import 'package:rehla/features/admin/screens/admin_dashboard_screen.dart';
+import 'package:rehla/features/admin/screens/admin_trips_screen.dart';
 import 'package:rehla/features/auth/screens/login_screen.dart';
 import 'package:rehla/features/auth/screens/signup_screen.dart';
 import 'package:rehla/features/splash/splash_screen.dart';
+import 'package:rehla/features/user/booking/booking_confirmation_screen.dart';
+import 'package:rehla/features/user/booking/booking_details_screen.dart';
+import 'package:rehla/features/user/booking/cubit/booking_cubit.dart';
+import 'package:rehla/features/user/booking/model/trip_model.dart' as booking_trip;
 import 'package:rehla/features/user/filter/filter_screen.dart';
+import 'package:rehla/features/user/home/models/trip_models.dart' as home_trip;
+import 'package:rehla/features/user/profile/profile_screen.dart';
 import 'package:rehla/features/user/root.dart';
 import 'package:rehla/features/user/trip_details/trip_details_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: RouteNames.splash,
+    initialLocation: RouteNames.adminBookings,
     routes: [
       GoRoute(
         path: RouteNames.splash,
@@ -26,6 +37,90 @@ class AppRouter {
       GoRoute(
         path: RouteNames.home,
         builder: (context, state) => const RootScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.adminDashboard,
+        builder: (context, state) => const AdminDashboardScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.adminBookings,
+        builder: (context, state) => const AdminBookingsScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.adminTrips,
+        builder: (context, state) => const AdminTripsScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.addTrip,
+        builder: (context, state) => const AddTripScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.profile,
+        builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.bookingConfirmation,
+        builder: (context, state) {
+          booking_trip.TripModel? trip;
+          if (state.extra is booking_trip.TripModel) {
+            trip = state.extra as booking_trip.TripModel;
+          } else if (state.extra is home_trip.TripModel) {
+            final h = state.extra as home_trip.TripModel;
+            trip = booking_trip.TripModel.fromJson({
+              'title': h.title,
+              'from': h.from,
+              'description': h.description,
+              'destination': h.destination,
+              'price': h.price,
+              'capacity': h.capacity,
+              'availableSeats': h.availableSeats,
+              'startDate': h.startDate,
+              'endDate': h.endDate,
+              'status': h.status,
+              'coverImage': h.coverImage,
+              'included': h.included,
+              'excluded': h.excluded,
+              'cancelPolicy': h.cancelPolicy,
+            });
+          }
+          trip ??= booking_trip.TripModel.fromJson({});
+          return BlocProvider(
+            create: (_) => BookingCubit(),
+            child: BookingConfirmationScreen(trip: trip),
+          );
+        },
+      ),
+      GoRoute(
+        path: RouteNames.bookingDetails,
+        builder: (context, state) {
+          booking_trip.TripModel? trip;
+          if (state.extra is booking_trip.TripModel) {
+            trip = state.extra as booking_trip.TripModel;
+          } else if (state.extra is home_trip.TripModel) {
+            final h = state.extra as home_trip.TripModel;
+            trip = booking_trip.TripModel.fromJson({
+              'title': h.title,
+              'from': h.from,
+              'description': h.description,
+              'destination': h.destination,
+              'price': h.price,
+              'capacity': h.capacity,
+              'availableSeats': h.availableSeats,
+              'startDate': h.startDate,
+              'endDate': h.endDate,
+              'status': h.status,
+              'coverImage': h.coverImage,
+              'included': h.included,
+              'excluded': h.excluded,
+              'cancelPolicy': h.cancelPolicy,
+            });
+          }
+          trip ??= booking_trip.TripModel.fromJson({});
+          return BlocProvider(
+            create: (_) => BookingCubit(),
+            child: BookingDetailsScreen(trip: trip),
+          );
+        },
       ),
       GoRoute(
         path: RouteNames.filter,
