@@ -2,7 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'cubit/booking_cubit.dart';
 import 'cubit/booking_states.dart';
-import 'model/trip_model.dart';
+import 'package:rehla/features/user/home/models/trip_models.dart';
 import 'booking_details_screen.dart';
 
 class BookingScreen extends StatelessWidget {

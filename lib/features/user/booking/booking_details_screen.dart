@@ -1,7 +1,8 @@
 import 'package:material_ui/material_ui.dart';
-import 'model/trip_model.dart';
+import 'package:rehla/features/user/home/models/trip_models.dart';
 import 'booking_confirmation_screen.dart';
 import 'cubit/booking_cubit.dart';
+
 
 class BookingDetailsScreen extends StatelessWidget {
   final TripModel trip;
