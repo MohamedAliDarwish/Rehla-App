@@ -33,7 +33,7 @@ class AdminTripsCubit extends Cubit<AdminTripsState> {
       _allTrips.removeWhere((t) => t.id == tripId);
       _emitSuccess();
     } catch (e) {
-      _emitSuccess();
+      await loadTrips();
     }
   }
 
@@ -52,7 +52,7 @@ class AdminTripsCubit extends Cubit<AdminTripsState> {
       }
       _emitSuccess();
     } catch (e) {
-      _emitSuccess();
+      await loadTrips();
     }
   }
 

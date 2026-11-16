@@ -8,8 +8,6 @@ class ApiDataSourse {
   final Dio _dio = Dio(
     BaseOptions(
       baseUrl: "https://rehla-app-backend-api.vercel.app/api/v1/",
-      // connectTimeout: const Duration(seconds: 15),
-      // receiveTimeout: const Duration(seconds: 15),
     ),
   );
 
@@ -41,7 +39,6 @@ class ApiDataSourse {
       } else {
         rethrow;
       }
-      // rethrow;
     }
 
     final rawData = response.data;
@@ -112,7 +109,91 @@ class ApiDataSourse {
     return {};
   }
 
+  // Categories
+  Future<List<CategoryModel>> getAllCategories() async {
+    List<CategoryModel> categories = [];
+    var res = await _dio.get("categories");
+
+    final rawData = res.data;
+    final List<dynamic>? list = rawData is Map ? rawData["categories"] : null;
+    if (list != null) {
+      for (var category in list) {
+        if (category is Map<String, dynamic>) {
+          categories.add(CategoryModel.fromJson(category));
+        }
+      }
+    }
+    return categories;
+  }
+
+  // Trips
+  Future<List<TripModel>> getAllTrips({
+    String? categoryId,
+    String? search,
+  }) async {
+    List<TripModel> trips = [];
+    final Map<String, dynamic> queryParameters = {};
+    if (categoryId != null && categoryId.isNotEmpty) {
+      queryParameters['category'] = categoryId;
+    }
+    if (search != null && search.isNotEmpty) {
+      queryParameters['search'] = search;
+    }
+
+    var response = await _dio.get(
+      "trips",
+      queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
+    );
+    final rawData = response.data;
+    final List<dynamic>? list = rawData is Map
+        ? (rawData['data'] ?? rawData['trips'])
+        : null;
+    if (list != null) {
+      for (var item in list) {
+        if (item is Map<String, dynamic>) {
+          trips.add(TripModel.fromJson(item));
+        }
+      }
+    }
+    return trips;
+  }
+
+  // Trip Details: /trips/:id
+  Future<TripModel> getTripById(String id) async {
+    var response = await _dio.get("trips/$id");
+    final rawData = response.data;
+    if (rawData is Map<String, dynamic>) {
+      final tripMap = rawData['data'] ?? rawData['trip'] ?? rawData;
+      if (tripMap is Map<String, dynamic>) {
+        return TripModel.fromJson(tripMap);
+      }
+    }
+    throw Exception("فشل في تحميل تفاصيل الرحلة");
+  }
+
   // Admin APIs
+  Future<Map<String, dynamic>> createTrip(Map<String, dynamic> tripData) async {
+    final endpoints = ["trips", "admin/trips"];
+    DioException? lastError;
+
+    for (final ep in endpoints) {
+      try {
+        final response = await _dio.post(ep, data: tripData);
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          final rawData = response.data;
+          if (rawData is Map<String, dynamic>) {
+            return rawData;
+          }
+          return {"success": true};
+        }
+      } on DioException catch (e) {
+        lastError = e;
+      }
+    }
+    if (lastError != null) throw lastError;
+    throw Exception("فشل في إنشاء الرحلة على السيرفر");
+  }
+
   Future<Map<String, dynamic>> getAdminDashboardStats() async {
     Map<String, dynamic> stats = {};
 
@@ -195,7 +276,7 @@ class ApiDataSourse {
     try {
       final trips = await getAllTrips();
       if (trips.isNotEmpty) {
-        return trips.take(5).map((trip) {
+        return trips.map((trip) {
           return {
             "id": trip.id,
             "code": "#BKG-${trip.id.length >= 6 ? trip.id.substring(trip.id.length - 6).toUpperCase() : '250610'}",
@@ -209,39 +290,11 @@ class ApiDataSourse {
       }
     } catch (_) {}
 
-    return [
-      {
-        "id": "1",
-        "code": "#BKG-250610",
-        "destination": "شرم الشيخ",
-        "duration": "3 أيام / 2 ليلة",
-        "price": "2,950 ج.م",
-        "status": "مؤكد",
-        "image": "assets/images/dest_hurghada.png",
-      },
-      {
-        "id": "2",
-        "code": "#BKG-250609",
-        "destination": "الأقصر وأسوان",
-        "duration": "4 أيام / 3 ليلة",
-        "price": "3,750 ج.م",
-        "status": "مؤكد",
-        "image": "assets/images/dest_luxor.png",
-      },
-      {
-        "id": "3",
-        "code": "#BKG-250608",
-        "destination": "دهب",
-        "duration": "3 أيام / 2 ليلة",
-        "price": "1,850 ج.م",
-        "status": "قيد الانتظار",
-        "image": "assets/images/dest_dahab.png",
-      },
-    ];
+    return [];
   }
 
   Future<List<Map<String, dynamic>>> getAdminTrips() async {
-    final endpoints = ["admin/trips", "trips"];
+    final endpoints = ["trips/admin/all/trips", "admin/trips", "trips"];
 
     for (final ep in endpoints) {
       try {
@@ -257,64 +310,73 @@ class ApiDataSourse {
       } catch (_) {}
     }
 
-    return [
-      {
-        "id": "1",
-        "title": "شرم الشيخ",
-        "duration": "3 أيام / 2 ليلة",
-        "price": "2,950 ج.م",
-        "status": "منشورة",
-        "isPublished": true,
-        "image": "assets/images/dest_hurghada.png",
-      },
-      {
-        "id": "2",
-        "title": "الأقصر وأسوان",
-        "duration": "4 أيام / 3 ليلة",
-        "price": "3,750 ج.م",
-        "status": "منشورة",
-        "isPublished": true,
-        "image": "assets/images/dest_luxor.png",
-      },
-      {
-        "id": "3",
-        "title": "دهب",
-        "duration": "3 أيام / 2 ليلة",
-        "price": "1,850 ج.م",
-        "status": "منشورة",
-        "isPublished": true,
-        "image": "assets/images/dest_dahab.png",
-      },
-      {
-        "id": "4",
-        "title": "واحة سيوة",
-        "duration": "3 أيام / 2 ليلة",
-        "price": "2,650 ج.م",
-        "status": "غير منشورة",
-        "isPublished": false,
-        "image": "assets/images/home_featured.png",
-      },
-    ];
+    // Dynamic fallback to live trips API
+    try {
+      final trips = await getAllTrips();
+      if (trips.isNotEmpty) {
+        return trips.map((t) => {
+          "id": t.id,
+          "title": t.title,
+          "duration": "${t.days.isNotEmpty ? t.days.length : 3} أيام / ${(t.days.length > 1 ? t.days.length - 1 : 2)} ليلة",
+          "price": "${t.price.toInt()} ج.م",
+          "status": t.status.isNotEmpty ? t.status : "منشورة",
+          "isPublished": t.status != "غير منشورة",
+          "image": t.coverImage.isNotEmpty ? t.coverImage : "assets/images/dest_hurghada.png",
+        }).toList();
+      }
+    } catch (_) {}
+
+    return [];
+  }
+
+  Future<void> updateBookingStatus(String bookingId, String status) async {
+    final endpoints = ["admin/bookings/$bookingId", "bookings/$bookingId"];
+    DioException? lastError;
+
+    for (final ep in endpoints) {
+      try {
+        await _dio.patch(ep, data: {"status": status});
+        return;
+      } on DioException catch (e) {
+        lastError = e;
+      }
+    }
+    if (lastError != null) throw lastError;
   }
 
   Future<void> deleteTrip(String tripId) async {
-    try {
-      await _dio.delete("trips/$tripId");
-    } catch (_) {
+    final endpoints = ["trips/$tripId", "admin/trips/$tripId"];
+    DioException? lastError;
+
+    for (final ep in endpoints) {
       try {
-        await _dio.delete("admin/trips/$tripId");
-      } catch (_) {}
+        await _dio.delete(ep);
+        return;
+      } on DioException catch (e) {
+        lastError = e;
+      }
     }
+    if (lastError != null) throw lastError;
   }
 
   Future<void> togglePublishTrip(String tripId, bool publish) async {
-    try {
-      await _dio.patch("trips/$tripId", data: {"isPublished": publish, "status": publish ? "منشورة" : "غير منشورة"});
-    } catch (_) {
+    final endpoints = ["trips/$tripId", "admin/trips/$tripId"];
+    DioException? lastError;
+
+    for (final ep in endpoints) {
       try {
-        await _dio.patch("admin/trips/$tripId", data: {"isPublished": publish, "status": publish ? "منشورة" : "غير منشورة"});
-      } catch (_) {}
+        await _dio.patch(ep, data: {
+          "isPublished": publish,
+          "status": publish ? "منشورة" : "غير منشورة"
+        });
+        return;
+      } on DioException catch (e) {
+        lastError = e;
+      }
     }
+    if (lastError != null) throw lastError;
+  }
+
   // Favorites
   Future<List<TripModel>> getFavorites() async {
     final response = await _dio.get("favorites");
@@ -341,68 +403,6 @@ class ApiDataSourse {
 
   Future<void> removeFavorite(String tripId) async {
     await _dio.delete("favorites/$tripId");
-  }
-
-  // Categories
-  Future<List<CategoryModel>> getAllCategories() async {
-    List<CategoryModel> categories = [];
-    var res = await _dio.get("categories");
-
-    final rawData = res.data;
-    final List<dynamic>? list = rawData is Map ? rawData["categories"] : null;
-    if (list != null) {
-      for (var category in list) {
-        if (category is Map<String, dynamic>) {
-          categories.add(CategoryModel.fromJson(category));
-        }
-      }
-    }
-    return categories;
-  }
-
-  // Trips
-  Future<List<TripModel>> getAllTrips({
-    String? categoryId,
-    String? search,
-  }) async {
-    List<TripModel> trips = [];
-    final Map<String, dynamic> queryParameters = {};
-    if (categoryId != null && categoryId.isNotEmpty) {
-      queryParameters['category'] = categoryId;
-    }
-    if (search != null && search.isNotEmpty) {
-      queryParameters['search'] = search;
-    }
-
-    var response = await _dio.get(
-      "trips",
-      queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
-    );
-    final rawData = response.data;
-    final List<dynamic>? list = rawData is Map
-        ? (rawData['data'] ?? rawData['trips'])
-        : null;
-    if (list != null) {
-      for (var item in list) {
-        if (item is Map<String, dynamic>) {
-          trips.add(TripModel.fromJson(item));
-        }
-      }
-    }
-    return trips;
-  }
-
-  // Trip Details: /trips/:id
-  Future<TripModel> getTripById(String id) async {
-    var response = await _dio.get("trips/$id");
-    final rawData = response.data;
-    if (rawData is Map<String, dynamic>) {
-      final tripMap = rawData['data'] ?? rawData['trip'] ?? rawData;
-      if (tripMap is Map<String, dynamic>) {
-        return TripModel.fromJson(tripMap);
-      }
-    }
-    throw Exception("فشل في تحميل تفاصيل الرحلة");
   }
 
   Future<bool> checkFavorite(String tripId) async {

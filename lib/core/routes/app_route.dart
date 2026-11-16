@@ -9,31 +9,19 @@ import 'package:rehla/features/auth/screens/login_screen.dart';
 import 'package:rehla/features/auth/screens/signup_screen.dart';
 import 'package:rehla/features/splash/splash_screen.dart';
 import 'package:rehla/features/user/booking/booking_confirmation_screen.dart';
-import 'package:rehla/features/user/filter/filter_screen.dart';
-import 'package:rehla/features/user/home/models/trip_models.dart';
 import 'package:rehla/features/user/booking/booking_details_screen.dart';
 import 'package:rehla/features/user/booking/cubit/booking_cubit.dart';
-import 'package:rehla/features/user/booking/model/trip_model.dart' as booking_trip;
 import 'package:rehla/features/user/filter/filter_screen.dart';
-import 'package:rehla/features/user/home/models/trip_models.dart' as home_trip;
+import 'package:rehla/features/user/home/models/category_model.dart';
+import 'package:rehla/features/user/home/models/trip_models.dart';
 import 'package:rehla/features/user/profile/profile_screen.dart';
 import 'package:rehla/features/user/root.dart';
 import 'package:rehla/features/user/trip_details/trip_details_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: RouteNames.adminBookings,
+    initialLocation: RouteNames.splash,
     routes: [
-      GoRoute(
-  path: '/booking-confirmation',
-  builder: (context, state) {
-    
-    final tripData = state.extra as TripModel; 
-    
-    
-    return BookingConfirmationScreen(trip: tripData); 
-  },
-),
       GoRoute(
         path: RouteNames.splash,
         builder: (context, state) => const SplashScreen(),
@@ -73,29 +61,37 @@ class AppRouter {
       GoRoute(
         path: RouteNames.bookingConfirmation,
         builder: (context, state) {
-          booking_trip.TripModel? trip;
-          if (state.extra is booking_trip.TripModel) {
-            trip = state.extra as booking_trip.TripModel;
-          } else if (state.extra is home_trip.TripModel) {
-            final h = state.extra as home_trip.TripModel;
-            trip = booking_trip.TripModel.fromJson({
-              'title': h.title,
-              'from': h.from,
-              'description': h.description,
-              'destination': h.destination,
-              'price': h.price,
-              'capacity': h.capacity,
-              'availableSeats': h.availableSeats,
-              'startDate': h.startDate,
-              'endDate': h.endDate,
-              'status': h.status,
-              'coverImage': h.coverImage,
-              'included': h.included,
-              'excluded': h.excluded,
-              'cancelPolicy': h.cancelPolicy,
-            });
-          }
-          trip ??= booking_trip.TripModel.fromJson({});
+          final trip = state.extra is TripModel
+              ? (state.extra as TripModel)
+              : TripModel(
+                  id: '',
+                  title: '',
+                  availableSeats: 0,
+                  averageRating: 0.0,
+                  cancelPolicy: '',
+                  capacity: 0,
+                  category: CategoryModel(
+                    id: '',
+                    slug: '',
+                    image: '',
+                    isActive: true,
+                    nameAr: '',
+                    nameEn: '',
+                  ),
+                  coverImage: '',
+                  days: [],
+                  description: '',
+                  destination: '',
+                  from: '',
+                  gallery: [],
+                  included: [],
+                  excluded: [],
+                  price: 0.0,
+                  reviewsCount: 0,
+                  startDate: '',
+                  endDate: '',
+                  status: '',
+                );
           return BlocProvider(
             create: (_) => BookingCubit(),
             child: BookingConfirmationScreen(trip: trip),
@@ -105,29 +101,37 @@ class AppRouter {
       GoRoute(
         path: RouteNames.bookingDetails,
         builder: (context, state) {
-          booking_trip.TripModel? trip;
-          if (state.extra is booking_trip.TripModel) {
-            trip = state.extra as booking_trip.TripModel;
-          } else if (state.extra is home_trip.TripModel) {
-            final h = state.extra as home_trip.TripModel;
-            trip = booking_trip.TripModel.fromJson({
-              'title': h.title,
-              'from': h.from,
-              'description': h.description,
-              'destination': h.destination,
-              'price': h.price,
-              'capacity': h.capacity,
-              'availableSeats': h.availableSeats,
-              'startDate': h.startDate,
-              'endDate': h.endDate,
-              'status': h.status,
-              'coverImage': h.coverImage,
-              'included': h.included,
-              'excluded': h.excluded,
-              'cancelPolicy': h.cancelPolicy,
-            });
-          }
-          trip ??= booking_trip.TripModel.fromJson({});
+          final trip = state.extra is TripModel
+              ? (state.extra as TripModel)
+              : TripModel(
+                  id: '',
+                  title: '',
+                  availableSeats: 0,
+                  averageRating: 0.0,
+                  cancelPolicy: '',
+                  capacity: 0,
+                  category: CategoryModel(
+                    id: '',
+                    slug: '',
+                    image: '',
+                    isActive: true,
+                    nameAr: '',
+                    nameEn: '',
+                  ),
+                  coverImage: '',
+                  days: [],
+                  description: '',
+                  destination: '',
+                  from: '',
+                  gallery: [],
+                  included: [],
+                  excluded: [],
+                  price: 0.0,
+                  reviewsCount: 0,
+                  startDate: '',
+                  endDate: '',
+                  status: '',
+                );
           return BlocProvider(
             create: (_) => BookingCubit(),
             child: BookingDetailsScreen(trip: trip),

@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rehla/core/constants/app_colors.dart';
-import 'package:rehla/core/routes/route_names.dart';
+import 'package:rehla/core/data_sourse/api_data_sourse.dart';
 import 'package:rehla/core/theme/test_styles.dart';
 
 class AddTripScreen extends StatefulWidget {
@@ -13,9 +13,14 @@ class AddTripScreen extends StatefulWidget {
 
 class _AddTripScreenState extends State<AddTripScreen> {
   int _currentStep = 0;
+  bool _isLoading = false;
 
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _capacityController = TextEditingController();
+  final TextEditingController _coverImageUrlController = TextEditingController();
+  final TextEditingController _daysCountController = TextEditingController();
 
   String? _selectedGovernorate;
   String? _selectedCity;
@@ -52,7 +57,79 @@ class _AddTripScreenState extends State<AddTripScreen> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
+    _priceController.dispose();
+    _capacityController.dispose();
+    _coverImageUrlController.dispose();
+    _daysCountController.dispose();
     super.dispose();
+  }
+
+  Future<void> _submitTrip() async {
+    if (_titleController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('يرجى كتابة عنوان الرحلة أولاً'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      setState(() {
+        _currentStep = 0;
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final priceVal = double.tryParse(_priceController.text.trim()) ?? 2500.0;
+      final capacityVal = int.tryParse(_capacityController.text.trim()) ?? 20;
+
+      final tripData = {
+        "title": _titleController.text.trim(),
+        "description": _descriptionController.text.trim(),
+        "destination": _selectedCity ?? _selectedGovernorate ?? "مصر",
+        "from": _selectedGovernorate ?? "القاهرة",
+        "price": priceVal,
+        "capacity": capacityVal,
+        "availableSeats": capacityVal,
+        "status": "منشورة",
+        "isPublished": true,
+        "coverImage": _coverImageUrlController.text.trim().isNotEmpty
+            ? _coverImageUrlController.text.trim()
+            : "assets/images/dest_hurghada.png",
+      };
+
+      await ApiDataSourse().createTrip(tripData);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('تم إنشاء الرحلة وإرسالها للسيرفر بنجاح!'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        context.pop(true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'فشل في إرسال الرحلة للسيرفر: ${e.toString().replaceAll("Exception: ", "")}',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -107,7 +184,10 @@ class _AddTripScreenState extends State<AddTripScreen> {
                       const SizedBox(height: 20),
 
                       if (_currentStep == 0) _buildTripDetailsForm(),
-                      if (_currentStep > 0) _buildPlaceholderStep(),
+                      if (_currentStep == 1) _buildImagesForm(),
+                      if (_currentStep == 2) _buildPriceForm(),
+                      if (_currentStep == 3) _buildLocationForm(),
+                      if (_currentStep == 4) _buildReviewForm(),
                     ],
                   ),
                 ),
@@ -133,28 +213,33 @@ class _AddTripScreenState extends State<AddTripScreen> {
                       ),
                       elevation: 0,
                     ),
-                    onPressed: () {
-                      if (_currentStep < _steps.length - 1) {
-                        setState(() {
-                          _currentStep++;
-                        });
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('تم إنشاء الرحلة بنجاح!'),
-                            backgroundColor: AppColors.success,
+                    onPressed: _isLoading
+                        ? null
+                        : () {
+                            if (_currentStep < _steps.length - 1) {
+                              setState(() {
+                                _currentStep++;
+                              });
+                            } else {
+                              _submitTrip();
+                            }
+                          },
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2.5,
+                            ),
+                          )
+                        : Text(
+                            _currentStep == _steps.length - 1 ? 'حفظ الرحلة ونشرها' : 'التالي',
+                            style: AppTextStyles.titleMedium.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        );
-                        context.pop();
-                      }
-                    },
-                    child: Text(
-                      _currentStep == _steps.length - 1 ? 'حفظ الرحلة' : 'التالي',
-                      style: AppTextStyles.titleMedium.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
                   ),
                 ),
               ),
@@ -409,127 +494,175 @@ class _AddTripScreenState extends State<AddTripScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 24),
-
-        // 4. Action Tile: يشمل / لا يشمل
-        _buildActionTile(
-          icon: Icons.verified_user_rounded,
-          title: 'يشمل / لا يشمل',
-          onTap: () {},
-        ),
-        const SizedBox(height: 12),
-
-        // 5. Action Tile: المستلزمات
-        _buildActionTile(
-          icon: Icons.work_outline_rounded,
-          title: 'المستلزمات',
-          onTap: () {},
-        ),
-        const SizedBox(height: 12),
-
-        // 6. Action Tile: سياسة الإلغاء
-        _buildActionTile(
-          icon: Icons.description_outlined,
-          title: 'سياسة الإلغاء',
-          onTap: () {},
-        ),
         const SizedBox(height: 16),
       ],
     );
   }
 
-  Widget _buildActionTile({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(14),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(14),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(
-              children: [
-                // Icon Circle
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: AppColors.primary,
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                // Title
-                Expanded(
-                  child: Text(
-                    title,
-                    style: AppTextStyles.titleSmall.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                      fontSize: 15,
-                    ),
-                  ),
-                ),
-                // Chevron Left Icon
-                const Icon(
-                  Icons.chevron_left_rounded,
-                  color: Color(0xFF94A3B8),
-                  size: 22,
-                ),
-              ],
+  Widget _buildImagesForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'رابط صورة الغلاف',
+          style: AppTextStyles.titleSmall.copyWith(
+            fontWeight: FontWeight.bold,
+            color: AppColors.primary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _coverImageUrlController,
+          decoration: InputDecoration(
+            hintText: 'https://example.com/image.jpg (أو اتركها افتراضية)',
+            hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 
-  Widget _buildPlaceholderStep() {
+  Widget _buildPriceForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'السعر للفرد (ج.م)',
+          style: AppTextStyles.titleSmall.copyWith(
+            fontWeight: FontWeight.bold,
+            color: AppColors.primary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _priceController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            hintText: 'مثال: 2500',
+            hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          'السعة الكلية (عدد المقاعد)',
+          style: AppTextStyles.titleSmall.copyWith(
+            fontWeight: FontWeight.bold,
+            color: AppColors.primary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _capacityController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            hintText: 'مثال: 20',
+            hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLocationForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'مدة الرحلة (عدد الأيام)',
+          style: AppTextStyles.titleSmall.copyWith(
+            fontWeight: FontWeight.bold,
+            color: AppColors.primary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _daysCountController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            hintText: 'مثال: 3',
+            hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReviewForm() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            _steps[_currentStep]['icon'] as IconData,
-            size: 48,
-            color: AppColors.primary,
+          Row(
+            children: [
+              const Icon(Icons.check_circle, color: AppColors.primary, size: 28),
+              const SizedBox(width: 10),
+              Text(
+                'جاهز لحفظ الرحلة ونشرها',
+                style: AppTextStyles.titleMedium.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           Text(
-            'خطوة ${_steps[_currentStep]['title']}',
-            style: AppTextStyles.titleMedium.copyWith(
-              fontWeight: FontWeight.bold,
-              color: AppColors.primary,
-            ),
+            'عنوان الرحلة: ${_titleController.text.isEmpty ? "غير محدد" : _titleController.text}',
+            style: AppTextStyles.bodyMedium,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
-            'أدخل البيانات المتعلقة بـ ${_steps[_currentStep]['title']}',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: const Color(0xFF64748B),
-            ),
-            textAlign: TextAlign.center,
+            'الوجهة: ${_selectedCity ?? _selectedGovernorate ?? "غير محددة"}',
+            style: AppTextStyles.bodyMedium,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'السعر: ${_priceController.text.isEmpty ? "2,500" : _priceController.text} ج.م',
+            style: AppTextStyles.bodyMedium,
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'عند الضغط على "حفظ الرحلة ونشرها"، سيتم إرسال البيانات مباشرة إلى خادم API.',
+            style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
           ),
         ],
       ),

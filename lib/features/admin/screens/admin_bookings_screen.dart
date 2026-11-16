@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rehla/core/constants/app_colors.dart';
+import 'package:rehla/core/data_sourse/api_data_sourse.dart';
 import 'package:rehla/core/routes/route_names.dart';
 import 'package:rehla/core/theme/test_styles.dart';
 import '../models/admin_booking_model.dart';
@@ -15,91 +16,80 @@ class AdminBookingsScreen extends StatefulWidget {
 
 class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
   String _activeFilter = 'الكل';
+  bool _isLoading = true;
+  String? _errorMessage;
 
-  late List<AdminBookingModel> _bookings;
+  final ApiDataSourse _apiDataSourse = ApiDataSourse();
+  List<AdminBookingModel> _bookings = [];
 
   @override
   void initState() {
     super.initState();
-    _bookings = [
-      AdminBookingModel(
-        id: '1',
-        userName: 'محمد أحمد',
-        userEmail: 'mohamed@example.com',
-        userPhone: '+20 100 123 4567',
-        userAvatar: '',
-        destination: 'شرم الشيخ',
-        date: '20 - 22 يونيو 2025',
-        guests: '2 بالغ',
-        price: '6,000 ج.م',
-        status: 'بانتظار الرد',
-        image: 'assets/images/dest_hurghada.png',
-      ),
-      AdminBookingModel(
-        id: '2',
-        userName: 'سارة علي',
-        userEmail: 'sara@example.com',
-        userPhone: '+20 112 345 6789',
-        userAvatar: '',
-        destination: 'الأقصر وأسوان',
-        date: '10 - 13 يوليو 2025',
-        guests: '3 بالغ',
-        price: '11,250 ج.م',
-        status: 'مقبولة',
-        image: 'assets/images/dest_luxor.png',
-      ),
-      AdminBookingModel(
-        id: '3',
-        userName: 'أحمد خالد',
-        userEmail: 'ahmed@example.com',
-        userPhone: '+20 109 876 5432',
-        userAvatar: '',
-        destination: 'دهب',
-        date: '5 - 7 أغسطس 2025',
-        guests: '1 بالغ',
-        price: '4,200 ج.م',
-        status: 'بانتظار الرد',
-        image: 'assets/images/dest_dahab.png',
-      ),
-      AdminBookingModel(
-        id: '4',
-        userName: 'عمر محمود',
-        userEmail: 'omar@example.com',
-        userPhone: '+20 101 999 8877',
-        userAvatar: '',
-        destination: 'واحة سيوة',
-        date: '1 - 3 سبتمبر 2025',
-        guests: '2 بالغ',
-        price: '5,300 ج.م',
-        status: 'مرفوضة',
-        image: 'assets/images/home_featured.png',
-      ),
-    ];
+    _fetchBookings();
+  }
+
+  Future<void> _fetchBookings() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final rawList = await _apiDataSourse.getAdminBookings();
+      final loaded = rawList.map((item) => AdminBookingModel.fromJson(item)).toList();
+      setState(() {
+        _bookings = loaded;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString().replaceAll("Exception: ", "");
+        _isLoading = false;
+      });
+    }
   }
 
   int get _countAll => _bookings.length;
-  int get _countPending => _bookings.where((b) => b.status == 'بانتظار الرد').length;
-  int get _countAccepted => _bookings.where((b) => b.status == 'مقبولة').length;
-  int get _countRejected => _bookings.where((b) => b.status == 'مرفوضة').length;
+  int get _countPending => _bookings.where((b) => b.status == 'بانتظار الرد' || b.status == 'قيد الانتظار').length;
+  int get _countAccepted => _bookings.where((b) => b.status == 'مقبولة' || b.status == 'مؤكد').length;
+  int get _countRejected => _bookings.where((b) => b.status == 'مرفوضة' || b.status == 'ملغي').length;
 
   List<AdminBookingModel> get _filteredBookings {
     if (_activeFilter == 'بانتظار الرد') {
-      return _bookings.where((b) => b.status == 'بانتظار الرد').toList();
+      return _bookings.where((b) => b.status == 'بانتظار الرد' || b.status == 'قيد الانتظار').toList();
     } else if (_activeFilter == 'مقبولة') {
-      return _bookings.where((b) => b.status == 'مقبولة').toList();
+      return _bookings.where((b) => b.status == 'مقبولة' || b.status == 'مؤكد').toList();
     } else if (_activeFilter == 'مرفوضة') {
-      return _bookings.where((b) => b.status == 'مرفوضة').toList();
+      return _bookings.where((b) => b.status == 'مرفوضة' || b.status == 'ملغي').toList();
     }
     return _bookings;
   }
 
-  void _updateStatus(String id, String newStatus) {
+  Future<void> _updateStatus(String id, String newStatus) async {
+    final originalIndex = _bookings.indexWhere((b) => b.id == id);
+    if (originalIndex == -1) return;
+
+    final oldBooking = _bookings[originalIndex];
     setState(() {
-      final index = _bookings.indexWhere((b) => b.id == id);
-      if (index != -1) {
-        _bookings[index] = _bookings[index].copyWith(status: newStatus);
-      }
+      _bookings[originalIndex] = oldBooking.copyWith(status: newStatus);
     });
+
+    try {
+      await _apiDataSourse.updateBookingStatus(id, newStatus);
+    } catch (e) {
+      // Revert if API update fails
+      if (mounted) {
+        setState(() {
+          _bookings[originalIndex] = oldBooking;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('تعذر تحديث حالة الحجز على السيرفر: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -133,39 +123,9 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
           ),
           centerTitle: true,
           actions: [
-            // Bell Notification Icon with Badge '5'
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.notifications_none_rounded, color: AppColors.primary, size: 26),
-                  onPressed: () {},
-                ),
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFEF4444),
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 18,
-                      minHeight: 18,
-                    ),
-                    child: const Text(
-                      '5',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ],
+            IconButton(
+              icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
+              onPressed: _fetchBookings,
             ),
           ],
         ),
@@ -218,24 +178,50 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
 
             // Booking Cards List
             Expanded(
-              child: _filteredBookings.isEmpty
-                  ? Center(
-                      child: Text(
-                        'لا توجد طلبات حجز حالياً',
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
                       ),
                     )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _filteredBookings.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 14),
-                      itemBuilder: (context, index) {
-                        final booking = _filteredBookings[index];
-                        return _buildBookingCard(booking);
-                      },
-                    ),
+                  : _errorMessage != null
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                _errorMessage!,
+                                style: const TextStyle(color: AppColors.error),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: _fetchBookings,
+                                child: const Text('إعادة المحاولة'),
+                              ),
+                            ],
+                          ),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: _fetchBookings,
+                          child: _filteredBookings.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    'لا توجد طلبات حجز حالياً',
+                                    style: AppTextStyles.bodyMedium.copyWith(
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                )
+                              : ListView.separated(
+                                  padding: const EdgeInsets.all(16),
+                                  itemCount: _filteredBookings.length,
+                                  separatorBuilder: (_, __) => const SizedBox(height: 14),
+                                  itemBuilder: (context, index) {
+                                    final booking = _filteredBookings[index];
+                                    return _buildBookingCard(booking);
+                                  },
+                                ),
+                        ),
             ),
           ],
         ),
@@ -261,9 +247,9 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
   }
 
   Widget _buildBookingCard(AdminBookingModel booking) {
-    final isPending = booking.status == 'بانتظار الرد';
-    final isAccepted = booking.status == 'مقبولة';
-    final isRejected = booking.status == 'مرفوضة';
+    final isPending = booking.status == 'بانتظار الرد' || booking.status == 'قيد الانتظار';
+    final isAccepted = booking.status == 'مقبولة' || booking.status == 'مؤكد';
+    final isRejected = booking.status == 'مرفوضة' || booking.status == 'ملغي';
 
     return Container(
       decoration: BoxDecoration(
@@ -370,18 +356,31 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                 // Destination Thumbnail
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                    booking.image,
-                    width: 95,
-                    height: 75,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      width: 95,
-                      height: 75,
-                      color: const Color(0xFFE2E8F0),
-                      child: const Icon(Icons.image, color: Color(0xFF94A3B8)),
-                    ),
-                  ),
+                  child: booking.image.startsWith('http')
+                      ? Image.network(
+                          booking.image,
+                          width: 95,
+                          height: 75,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 95,
+                            height: 75,
+                            color: const Color(0xFFE2E8F0),
+                            child: const Icon(Icons.image, color: Color(0xFF94A3B8)),
+                          ),
+                        )
+                      : Image.asset(
+                          booking.image,
+                          width: 95,
+                          height: 75,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 95,
+                            height: 75,
+                            color: const Color(0xFFE2E8F0),
+                            child: const Icon(Icons.image, color: Color(0xFF94A3B8)),
+                          ),
+                        ),
                 ),
                 const SizedBox(width: 12),
 
