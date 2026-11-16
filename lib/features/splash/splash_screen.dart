@@ -29,7 +29,13 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     if (hasToken) {
-      context.go(RouteNames.home);
+      final isAdmin = await SecureStorageService.instance.isAdmin();
+      if (!mounted) return;
+      if (isAdmin) {
+        context.go(RouteNames.adminDashboard);
+      } else {
+        context.go(RouteNames.home);
+      }
     } else {
       context.go(RouteNames.login);
     }
